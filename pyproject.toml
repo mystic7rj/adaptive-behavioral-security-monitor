@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "absm"
+version = "0.1.0"
+description = "Adaptive Behavioral Security Monitor ingestion pipeline"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "fastapi>=0.111",
+  "starlette>=0.37",
+  "python-jose>=3.3",
+  "slowapi>=0.1.9",
+  "uvicorn>=0.30",
+  "httpx>=0.27",
+  "confluent-kafka>=2.4",
+  "asyncpg>=0.29",
+  "redis>=5.0",
+  "msgpack>=1.0",
+  "types-msgpack>=1.0",
+  "torch>=2.2",
+  "scipy>=1.11",
+  "pytest>=8.0",
+  "shap>=0.45",
+  "prometheus-client>=0.20",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ingest*", "storage*", "config*", "features*", "models*", "training*", "drift*", "rl*", "explain*", "enrich*", "alerts*", "monitoring*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

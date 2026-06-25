@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  # Kafka provides event-stream backbone for ingest pipeline traffic.
+  kafka:
+    image: bitnami/kafka:3.7
+    env_file:
+      - ../.env.compose
+    networks:
+      - absm-private
+
+  # TimescaleDB stores time-series telemetry and anomaly outputs.
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    env_file:
+      - ../.env.compose
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+    networks:
+      - absm-private
+
+  # Redis backs low-latency cache/state for feature and policy operations.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - absm-private
+
+  # API service is built from local hardened Dockerfile and only this service is externally exposed.
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    env_file:
+      - ../.env.compose
+    depends_on:
+      - kafka
+      - timescaledb
+      - redis
+    ports:
+      - "8000:8000"
+    networks:
+      - absm-private
+
+  # Prometheus scrapes internal metrics and remains private to reduce exposed attack surface.
+  prometheus:
+    image: prom/prometheus:latest
+    env_file:
+      - ../.env.compose
+    volumes:
+      - prometheus-data:/prometheus
+    networks:
+      - absm-private
+
+  # Grafana is externally exposed for dashboard access while data backends stay private.
+  grafana:
+    image: grafana/grafana:latest
+    env_file:
+      - ../.env.compose
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - absm-private
+
+volumes:
+  timescaledb-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  # Private bridge network isolates internal services; only explicitly mapped ports are reachable externally.
+  absm-private:
+    driver: bridge
