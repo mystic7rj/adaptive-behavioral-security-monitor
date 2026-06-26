@@ -39,7 +39,7 @@ jobs:
 
       - name: Bandit SAST scan
         # SAST scanning identifies common Python security antipatterns before deployment.
-        run: bandit -r absm/
+        run: bandit -r alerts api config drift enrich features ingest models monitoring rl storage training explain
 
       - name: Safety dependency vulnerability scan
         # Dependency CVE scan reduces exposure to known vulnerable package versions.
@@ -73,7 +73,7 @@ jobs:
       - name: Run e2e synthetic scenarios
         # E2E replay validates high-risk threat patterns against integrated scoring paths.
         run: |
-          python -c "from tests.e2e.insider_threat_scenario import run_scenario as r1; from tests.e2e.compromised_creds_scenario import run_scenario as r2; assert r1() and r2()"
+          python -c "from tests.e2e.test_insider_threat import run_scenario as r1; from tests.e2e.test_compromised_creds import run_scenario as r2; assert r1() and r2()"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
